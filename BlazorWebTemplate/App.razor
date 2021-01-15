@@ -1,0 +1,38 @@
+﻿@inject IJSRuntime jsRuntime
+@implements IDisposable
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof( MainLayout )">
+                <NotAuthorized>
+                    <h1>Bejelentkezés szükséges</h1>
+                    <p>Jelentkezz be a menü eléréséhez!</p>
+                    <button onclick="window.location.href='/'">Bejelentkezés</button>
+                </NotAuthorized>
+                <Authorizing>
+                    <h1>Authentication in progress</h1>
+                    <p>Only visible while authentication is in progress.</p>
+                </Authorizing>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p>Itt nincs semmi</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+
+@code {
+
+    protected override async Task OnAfterRenderAsync( bool first )
+    {
+        //string res = await jsRuntime.InvokeAsync<string>( "getBrowserInfo", "asdf" );
+    }
+
+    public void Dispose( )
+    {
+    }
+
+}

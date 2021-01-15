@@ -1,0 +1,40 @@
+﻿@page "/"
+@inject NavigationManager navigationManager
+@inject AuthenticationStateProvider authStateProvider
+
+<div class="login-div">
+    <h3>Bejelentkezés</h3>
+
+    <TelerikTextBox Width="200px" @bind-Value="FelhasznaloNev" Label="Felhasználó">
+    </TelerikTextBox>
+
+    <TelerikTextBox Width="200px" @bind-Value="Jelszo" Label="Jelszó">
+    </TelerikTextBox>
+
+    <TelerikButton class="button-primary login-button" @onclick="Bejelentkezes">Bejelentkezés</TelerikButton>
+</div>
+
+
+@code {
+
+    public string FelhasznaloNev { get; set; }
+
+    public string Jelszo { get; set; }
+
+
+    public async void Bejelentkezes( )
+    {
+        var a = ( authStateProvider as CustomAuthStateProvider );
+
+        a.LogInUser( "mate" );
+        navigationManager.NavigateTo( "menu" );
+
+    }protected override async Task OnAfterRenderAsync( bool first )
+    {
+        var a = 0;
+    }
+
+    
+
+
+}
