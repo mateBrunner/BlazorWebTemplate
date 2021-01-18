@@ -1,6 +1,9 @@
 ﻿@page "/"
 @inject NavigationManager navigationManager
-@inject AuthenticationStateProvider authStateProvider
+@inject SessionService sessionService
+@inject IJSRuntime m_jsRuntime
+@inject ICustomAuthService authService
+@using System.Threading
 
 <div class="login-div">
     <h3>Bejelentkezés</h3>
@@ -24,17 +27,27 @@
 
     public async void Bejelentkezes( )
     {
-        var a = ( authStateProvider as CustomAuthStateProvider );
+        var res = authService.TryLogin( FelhasznaloNev, Jelszo );
 
-        a.LogInUser( "mate" );
+        if ( res != null )
+        {
+            string time = DateTime.Now.ToString( "yyyyMMddHHmmss" );
+
+            var sessionId = m_jsRuntime.InvokeAsync<string>( "handleLogin", res.Username, res.JsModules, time );
+            //ha azonnal akarunk modul-beli függvényt hívni, még nem biztos, hogy kész a kliens az importtal
+
+            sessionService.LogInUser( sessionId.Result, res );
+        }
+
         navigationManager.NavigateTo( "menu" );
 
-    }protected override async Task OnAfterRenderAsync( bool first )
+    }
+    protected override async Task OnAfterRenderAsync( bool first )
     {
         var a = 0;
     }
 
-    
+
 
 
 }

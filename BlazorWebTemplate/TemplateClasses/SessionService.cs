@@ -9,15 +9,15 @@ namespace BlazorWebTemplate.TemplateClasses
     public class SessionService
     {
 
-        private Dictionary<string, SessionData> m_SessionDataDict = new Dictionary<string, SessionData>( );
+        private Dictionary<string, UserData> m_SessionDataDict = new Dictionary<string, UserData>( );
 
 
-        public SessionData GetSessionAdatok( string hash )
+        public UserData GetSessionAdatok( string sessionId )
         {
-            if ( m_SessionDataDict.ContainsKey( hash ) )
-                return m_SessionDataDict[ hash ];
+            if ( m_SessionDataDict.ContainsKey( sessionId ) )
+                return m_SessionDataDict[ sessionId ];
 
-            m_SessionDataDict.Add( hash, new SessionData
+            m_SessionDataDict.Add( sessionId, new UserData
             {
                 ClaimsPrincipal = new ClaimsPrincipal(
                     new ClaimsIdentity( new[]
@@ -27,8 +27,13 @@ namespace BlazorWebTemplate.TemplateClasses
                     }, "authentication type" ) )
             } );
 
-            return m_SessionDataDict[ hash ];
+            return m_SessionDataDict[ sessionId ];
 
+        }
+
+        public void LogInUser( string sessionId, UserData user )
+        {
+            m_SessionDataDict.Add( sessionId, user );
         }
 
         public async Task<string> GetHash( string windowsUser, string browser )

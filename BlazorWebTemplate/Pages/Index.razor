@@ -1,6 +1,6 @@
 ﻿@page "/menu"
 @inject IJSRuntime m_jsRuntime
-@*@attribute [Authorize( Roles = "roleTest" )]*@
+@attribute [Authorize( Roles = "testRole" )]
 
 <h1>Ez a menü</h1>
 
@@ -8,7 +8,7 @@
 
     protected override async Task OnAfterRenderAsync( bool first )
     {
-        await m_jsRuntime.InvokeAsync<string>( "templateData.js.authenticatedFunction" );
+        //await m_jsRuntime.InvokeAsync<string>( "callModuleFunction", JsModules.AUTHENTICATED, AuthenticatedModuleFunctions.TEST_METHOD );
     }
 
 }

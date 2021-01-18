@@ -35,6 +35,7 @@ namespace BlazorWebTemplate
             services.AddServerSideBlazor( );
 
             services.AddSingleton<SessionService>( );
+            services.AddSingleton<ICustomAuthService, CustomAuthService>( );
 
 
             services.AddHttpContextAccessor( );

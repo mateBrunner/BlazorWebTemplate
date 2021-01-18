@@ -1,5 +1,7 @@
 ﻿@inject IJSRuntime jsRuntime
 @implements IDisposable
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration config
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
@@ -28,7 +30,6 @@
 
     protected override async Task OnAfterRenderAsync( bool first )
     {
-        //string res = await jsRuntime.InvokeAsync<string>( "getBrowserInfo", "asdf" );
     }
 
     public void Dispose( )

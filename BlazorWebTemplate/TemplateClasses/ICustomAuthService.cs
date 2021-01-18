@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BlazorWebTemplate.TemplateClasses
 {
-    public class SessionData
+    public interface ICustomAuthService
     {
 
-        public ClaimsPrincipal ClaimsPrincipal { get; set; }
+        UserData TryLogin( string username, string password );
 
     }
 }

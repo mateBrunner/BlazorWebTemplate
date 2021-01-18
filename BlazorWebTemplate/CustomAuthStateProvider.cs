@@ -1,6 +1,8 @@
 ﻿using BlazorWebTemplate.TemplateClasses;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -11,37 +13,32 @@ namespace BlazorWebTemplate
 
         private IJSRuntime m_JSRuntime;
         private SessionService m_SessionService;
+        private IConfiguration m_config;
 
-        public CustomAuthStateProvider( IJSRuntime jsRuntime, SessionService sessionService )
+        public CustomAuthStateProvider( IJSRuntime jsRuntime, SessionService sessionService, IConfiguration config )
         {
             m_JSRuntime = jsRuntime;
             m_SessionService = sessionService;
+            m_config = config;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync( )
         {
-            SessionData userAdatok = await GetSessionAdatok( );
+
+            string userName = null;
+            if ( m_config[ $"CustomOptions:AuthenticationType" ] == "windows" )
+                userName = System.Environment.MachineName;
+
+            var currentTime = DateTime.Now.ToString( "yyyyMMddHHmmss" );
+
+            //lekérdezzük a sessionId-t. Ha windows-os aut. van, és a window.name üres, akkor generálunk
+            var sessionId = await m_JSRuntime.InvokeAsync<string>( "checkSessionId", userName, currentTime );
+
+            UserData userAdatok = m_SessionService.GetSessionAdatok( sessionId );
 
             return await Task.FromResult( new AuthenticationState( userAdatok.ClaimsPrincipal ) );
         }
 
-        public async void LogInUser( string username )
-        {
-            SessionData userAdatok = await GetSessionAdatok( );
-
-            //( userAdatok.ClaimsPrincipal.Identity as ClaimsIdentity ).AddClaim( new Claim( ClaimTypes.Role, "role2" ) );
-            await m_JSRuntime.InvokeAsync<string>( "successfulLogin", "üzenet" );
-            NotifyAuthenticationStateChanged( Task.FromResult( new AuthenticationState( userAdatok.ClaimsPrincipal ) ) );
-        }
-
-        private async Task<SessionData> GetSessionAdatok( )
-        {
-            //string browser = await m_JSRuntime.InvokeAsync<string>( "getBrowserInfo" );
-            var machineName = System.Environment.MachineName;
-            string hash = await m_SessionService.GetHash( machineName, "browser" );
-
-            return m_SessionService.GetSessionAdatok( hash );
-        }
 
     }
 }

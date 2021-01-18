@@ -1,7 +1,7 @@
 ﻿
-export function authenticatedFunction() {
+export function testMethod() {
 
     
-    console.log("authenticatedFunction")
+    console.log("testMethod");
 
 }
