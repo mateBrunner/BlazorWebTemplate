@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using System;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BlazorWebTemplate
@@ -29,14 +28,15 @@ namespace BlazorWebTemplate
             if ( m_config[ $"CustomOptions:AuthenticationType" ] == "windows" )
                 userName = System.Environment.MachineName;
 
-            var currentTime = DateTime.Now.ToString( "yyyyMMddHHmmss" );
+            var currentTime = DateTime.Now.ToString( "yyyyMMdd-HHmmssfff" );
 
             //lekérdezzük a sessionId-t. Ha windows-os aut. van, és a window.name üres, akkor generálunk
-            var sessionId = await m_JSRuntime.InvokeAsync<string>( "checkSessionId", userName, currentTime );
+            var data = await m_JSRuntime.InvokeAsync<string>( "getClientData", userName, currentTime );
+            ClientData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientData>( data );
 
-            UserData userAdatok = m_SessionService.GetSessionAdatok( sessionId );
+            SessionData sessionAdatok = m_SessionService.GetSessionAdatok( clientData );
 
-            return await Task.FromResult( new AuthenticationState( userAdatok.ClaimsPrincipal ) );
+            return await Task.FromResult( new AuthenticationState( sessionAdatok.ClaimsPrincipal ) );
         }
 
 

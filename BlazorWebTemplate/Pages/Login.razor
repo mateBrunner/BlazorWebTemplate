@@ -27,16 +27,19 @@
 
     public async void Bejelentkezes( )
     {
-        var res = authService.TryLogin( FelhasznaloNev, Jelszo );
+        var userData = authService.TryLogin( FelhasznaloNev, Jelszo );
 
-        if ( res != null )
+        if ( userData != null )
         {
-            string time = DateTime.Now.ToString( "yyyyMMddHHmmss" );
+            var data = await m_jsRuntime.InvokeAsync<string>( "getClientData" );
+            ClientData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientData>( data );
 
-            var sessionId = m_jsRuntime.InvokeAsync<string>( "handleLogin", res.Username, res.JsModules, time );
+            var newSessionId = sessionService.LogInUser( clientData, userData );
+
+            await m_jsRuntime.InvokeAsync<string>( "handleFirstLogin", newSessionId, sessionService.GetSessionAdatok(newSessionId).JsModules );
+            //await m_jsRuntime.InvokeAsync<string>( "callModuleFunction", JsModules.AUTHENTICATED, AuthenticatedModuleFunctions.TEST_METHOD );
             //ha azonnal akarunk modul-beli függvényt hívni, még nem biztos, hogy kész a kliens az importtal
 
-            sessionService.LogInUser( sessionId.Result, res );
         }
 
         navigationManager.NavigateTo( "menu" );

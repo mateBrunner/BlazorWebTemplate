@@ -9,15 +9,33 @@ namespace BlazorWebTemplate.TemplateClasses
     public class SessionService
     {
 
-        private Dictionary<string, UserData> m_SessionDataDict = new Dictionary<string, UserData>( );
+        private Dictionary<string, SessionData> m_SessionDataDict = new Dictionary<string, SessionData>( );
 
 
-        public UserData GetSessionAdatok( string sessionId )
+        public SessionData GetSessionAdatok( ClientData client )
+        {
+            if ( m_SessionDataDict.ContainsKey( client.SessionId ) )
+                return m_SessionDataDict[ client.SessionId ];
+
+            m_SessionDataDict.Add( client.SessionId, new SessionData
+            {
+                ClaimsPrincipal = new ClaimsPrincipal(
+                    new ClaimsIdentity( new[]
+                    {
+                        //new Claim(ClaimTypes.Name, hash.Split("||")[0]),
+                        new Claim(ClaimTypes.Role, "testRole")
+                    }, "authentication type" ) )
+            } );
+
+            return m_SessionDataDict[ client.SessionId ];
+        }
+
+        public SessionData GetSessionAdatok( string sessionId )
         {
             if ( m_SessionDataDict.ContainsKey( sessionId ) )
                 return m_SessionDataDict[ sessionId ];
 
-            m_SessionDataDict.Add( sessionId, new UserData
+            m_SessionDataDict.Add( sessionId, new SessionData
             {
                 ClaimsPrincipal = new ClaimsPrincipal(
                     new ClaimsIdentity( new[]
@@ -28,18 +46,22 @@ namespace BlazorWebTemplate.TemplateClasses
             } );
 
             return m_SessionDataDict[ sessionId ];
-
         }
 
-        public void LogInUser( string sessionId, UserData user )
+        public string LogInUser( ClientData clientData, SessionData newUserData )
         {
-            m_SessionDataDict.Add( sessionId, user );
+
+            m_SessionDataDict.Remove( clientData.SessionId );
+
+            var date = DateTime.Now.ToString( "yyyyMMdd-HHmmssfff" );
+            string newSessionId = $"{clientData.SessionId}_{date}_{Guid.NewGuid()}";
+            newSessionId = newSessionId.Replace( "anonym", newUserData.Username );
+
+            m_SessionDataDict.Add( newSessionId, newUserData );
+
+            return newSessionId;
         }
 
-        public async Task<string> GetHash( string windowsUser, string browser )
-        {
-            return "asdf";
-        }
 
     }
 }

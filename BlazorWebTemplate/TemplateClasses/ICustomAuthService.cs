@@ -8,7 +8,7 @@ namespace BlazorWebTemplate.TemplateClasses
     public interface ICustomAuthService
     {
 
-        UserData TryLogin( string username, string password );
+        SessionData TryLogin( string username, string password );
 
     }
 }

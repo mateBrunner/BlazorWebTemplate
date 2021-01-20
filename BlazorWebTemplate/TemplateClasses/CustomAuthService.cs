@@ -9,7 +9,7 @@ namespace BlazorWebTemplate.TemplateClasses
     public class CustomAuthService : ICustomAuthService
     {
 
-        public UserData TryLogin(string username, string password)
+        public SessionData TryLogin(string username, string password)
         {
 
             bool isValid = true;
@@ -20,14 +20,14 @@ namespace BlazorWebTemplate.TemplateClasses
             return GetUserDataByUser( username );
         }
 
-        public UserData TryWindowsLogin(string username)
+        public SessionData TryWindowsLogin(string username)
         {
             return GetUserDataByUser( username );
         }
 
-        public UserData GetUserDataByUser( string username )
+        public SessionData GetUserDataByUser( string username )
         {
-            UserData userData = new UserData( )
+            SessionData userData = new SessionData( )
             {
                 Username = username,
                 ClaimsPrincipal = getClaimsByUser( username )

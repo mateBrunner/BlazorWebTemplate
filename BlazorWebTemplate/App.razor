@@ -2,6 +2,7 @@
 @implements IDisposable
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration config
+@inject SessionService sessionService
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
@@ -26,14 +27,27 @@
     </Router>
 </CascadingAuthenticationState>
 
-@code {
+@code {        
+
+
+    protected override async void OnInitialized( )
+    {
+        //string time = DateTime.Now.ToString( "yyyyMMdd-HHmmss" );
+        //var res = await jsRuntime.InvokeAsync<string>( "initClient", time );
+        //JsInitData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<JsInitData>( res );
+        //sessionService.NewClient( clientData );
+
+        base.OnInitialized( );
+    }
 
     protected override async Task OnAfterRenderAsync( bool first )
     {
+
     }
 
     public void Dispose( )
     {
     }
+
 
 }

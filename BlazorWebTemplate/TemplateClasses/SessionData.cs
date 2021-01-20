@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BlazorWebTemplate.TemplateClasses
 {
-    public class UserData
+    public class SessionData
     {
 
         public string Username { get; set; }
