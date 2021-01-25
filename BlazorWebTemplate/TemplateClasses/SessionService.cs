@@ -53,8 +53,8 @@ namespace BlazorWebTemplate.TemplateClasses
 
             m_SessionDataDict.Remove( clientData.SessionId );
 
-            var date = DateTime.Now.ToString( "yyyyMMdd-HHmmssfff" );
-            string newSessionId = $"{clientData.SessionId}_{date}_{Guid.NewGuid()}";
+            var date = DateTime.Now.ToString( "yyyyMMddTHHmmssfff" );
+            string newSessionId = $"{clientData.SessionId}__{date}__{Guid.NewGuid()}";
             newSessionId = newSessionId.Replace( "anonym", newUserData.Username );
 
             m_SessionDataDict.Add( newSessionId, newUserData );
@@ -62,6 +62,36 @@ namespace BlazorWebTemplate.TemplateClasses
             return newSessionId;
         }
 
+        //public void LogInOtherTab( LoginData data )
+        //{
+
+        //    if ( data.FirstLoginSessionId == data.SessionId )
+        //        return;
+
+        //    var sessionData = m_SessionDataDict[ data.FirstLoginSessionId ];
+        //    var oldSessionData = m_SessionDataDict[ data.OldSessionId ];
+        //    m_SessionDataDict.Remove( data.OldSessionId );
+
+        //    sessionData.ClaimsPrincipal = oldSessionData.ClaimsPrincipal;
+        //    sessionData.JsModules = oldSessionData.JsModules;
+        //    sessionData.Username = oldSessionData.Username;
+
+        //    m_SessionDataDict[ data.SessionId ] = sessionData;
+
+        //}
+
+        public bool IsLoggedIn(string sessionId)
+        {
+            return TemplateHelper.GetSegmentOfSessionId( sessionId, SessionSegments.GUIDSERVER ) != null;
+        }
+
+        public void ChangeSessionId( ChangeSessionIdData data )
+        {
+
+            var sessionData = m_SessionDataDict[ data.OldSessionId ];
+            m_SessionDataDict.Remove( data.OldSessionId );
+            m_SessionDataDict[ data.NewSessionId ] = sessionData;
+        }
 
     }
 }

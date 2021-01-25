@@ -32,8 +32,7 @@
 
     protected override async void OnInitialized( )
     {
-        //string time = DateTime.Now.ToString( "yyyyMMdd-HHmmss" );
-        //var res = await jsRuntime.InvokeAsync<string>( "initClient", time );
+        var res = await jsRuntime.InvokeAsync<string>( "AppInit" );
         //JsInitData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<JsInitData>( res );
         //sessionService.NewClient( clientData );
 

@@ -15,5 +15,25 @@ namespace BlazorWebTemplate.TemplateClasses
         [JsonProperty( "ip" )]
         public string IpAddress { get; set; }
 
+
     }
+
+
+    public class ChangeSessionIdData
+    {
+        [JsonProperty( "senderSessionId" )]
+        public string SenderSessionId { get; set; }
+
+        [JsonProperty( "newSessionId" )]
+        public string NewSessionId { get; set; }
+
+        [JsonProperty( "oldSessionId" )]
+        public string OldSessionId { get; set; }
+
+        [JsonProperty( "isLoginNeeded" )]
+        public bool IsLoginNeeded { get; set; }
+
+
+    }
+
 }

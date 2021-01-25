@@ -31,23 +31,27 @@
 
         if ( userData != null )
         {
-            var data = await m_jsRuntime.InvokeAsync<string>( "getClientData" );
+            var data = await m_jsRuntime.InvokeAsync<string>( "GetClientData" );
             ClientData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientData>( data );
 
             var newSessionId = sessionService.LogInUser( clientData, userData );
 
-            await m_jsRuntime.InvokeAsync<string>( "handleFirstLogin", newSessionId, sessionService.GetSessionAdatok(newSessionId).JsModules );
+            await m_jsRuntime.InvokeAsync<string>( "HandleLogin", newSessionId, sessionService.GetSessionAdatok(newSessionId).JsModules );
             //await m_jsRuntime.InvokeAsync<string>( "callModuleFunction", JsModules.AUTHENTICATED, AuthenticatedModuleFunctions.TEST_METHOD );
             //ha azonnal akarunk modul-beli függvényt hívni, még nem biztos, hogy kész a kliens az importtal
 
+            navigationManager.NavigateTo( "menu" );
         }
 
-        navigationManager.NavigateTo( "menu" );
-
     }
-    protected override async Task OnAfterRenderAsync( bool first )
+
+    protected override async void OnInitialized( )
     {
-        var a = 0;
+        var data = await m_jsRuntime.InvokeAsync<string>( "GetClientData" );
+        ClientData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientData>( data );
+
+        if ( sessionService.IsLoggedIn( clientData.SessionId ) )
+            navigationManager.NavigateTo( "menu" );
     }
 
 

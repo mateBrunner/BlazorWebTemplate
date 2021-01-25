@@ -31,7 +31,7 @@ namespace BlazorWebTemplate
             var currentTime = DateTime.Now.ToString( "yyyyMMdd-HHmmssfff" );
 
             //lekérdezzük a sessionId-t. Ha windows-os aut. van, és a window.name üres, akkor generálunk
-            var data = await m_JSRuntime.InvokeAsync<string>( "getClientData", userName, currentTime );
+            var data = await m_JSRuntime.InvokeAsync<string>( "GetClientData" );
             ClientData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientData>( data );
 
             SessionData sessionAdatok = m_SessionService.GetSessionAdatok( clientData );

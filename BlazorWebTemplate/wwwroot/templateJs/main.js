@@ -1,75 +1,31 @@
-﻿var importedModules = {};
-var otherWindows = [];
-const channel = new BroadcastChannel('geo-channel');
+﻿const _g = {};
+_g.AppName = "BlazorWebTemplate"
+_g.Debug = true;
+_g.ImportedModules = {};
+_g.AllTabs = [];
+_g.Channel = new BroadcastChannel('geo-channel');
+_g.SyncMessage;
 
 
-initClient = async function (time) {
-
-    if (window.name != "") {
-        clientData = {
-            sessionId: window.name,
-            ip: "ipnumber"
-        }
-
-        return JSON.stringify(clientData);
-    }
-
-    await delay(600);
-
-    var sessionId;
-    if (otherWindows.length > 0) {
-        sessionId = otherWindows[0];
-        sessionId = sessionId.replace(sessionId.split("_")[0], time);
-    }        
-    else {
-        sessionId = generateSessionId("anonym", time)
-    }
-
-    window.name = sessionId;
-    startBroadcasting();
-  
-}
-
-handleFirstLogin = async function (sessionId, modules) {
-    var data = {
-        sessionId: sessionId,
-        modules: modules
-    }
-
-    var message = new Message(MessageTypes.Login, sessionId, data)
-    channel.postMessage(message);
-
-    handleLogin(data);
-}
-
-handleLogin = async function (data) {
-    var initTime = window.name.split("_")[0]
-    var newSessionId = initTime + data.sessionId.substr(initTime.length)
-    console.log(newSessionId);
-    window.name = data.sessionId;
-
-    for (let i = 0; i < data.modules.length; i++) {
-        var filename = './' + data.modules[i] + '.js';
-        try {
-            console.log("import " + filename);
-            importedModules[data.modules[i]] = await import(filename);
-            //return window.name;
-        } catch (error) {
-            console.log(error);
-        }
-    };
-    console.log("handleLogin lefutott")
-    console.log(data)
-
-}
-
-getClientData = async function (username, time) {
+async function AppInit() {
     if (window.name == "") {
-        await initClient(time)
+        window.name = GenerateSessionId(_g.AppName);
+        _g.AllTabs.push(window.name);
+        if (_g.Debug) console.log("init window name: " + window.name)
     }
 
 
-    clientData = {
+    StartBroadcasting();
+}
+
+async function GetClientData() {
+    "use strict" 
+
+    if (window.name == "")
+        AppInit();
+    
+
+    const clientData = {
         sessionId: window.name,
         ip: "ipnumber"
     }
@@ -79,86 +35,142 @@ getClientData = async function (username, time) {
     return window.name;
 }
 
-generateSessionId = function (username, time) {
-    return time + "_" + username + "_" + generateGUID();  
-}
 
-handleSuccessfulLogin = async function () {
-    importedModules.authenticated = await import('./authenticated.js')
-}
-
-callModuleFunction = async function (moduleName, functionName, param) {
-    console.log(moduleName + ' ' + functionName + ' ' + param)
-    console.log(importedModules);
-    if (window["importedModules"].hasOwnProperty(moduleName) && window["importedModules"][moduleName].hasOwnProperty(functionName))
-        window["importedModules"][moduleName][functionName](param);
+async function CallModuleFunction(moduleName, functionName, param) {
+    if (window["_g"]["ImportedModules"].hasOwnProperty(moduleName) &&
+        window["_g"]["ImportedModules"][moduleName].hasOwnProperty(functionName))
+        window["_g"]["ImportedModules"][moduleName][functionName](param);
     else 
-        console.log("function is not accessible")
+        if (_g.Debug) console.log("function is not accessible")
 }
 
-
-
-startBroadcasting = async function() {
-    console.log("start broadcast")
+async function StartBroadcasting() {
+    if (_g.Debug) console.log("start broadcast")
+    _g.SyncMessage = new Message(MessageTypes.Refresh, window.name, window.name)
     while (true) {
-        await delay(500);
-        var message = new Message(MessageTypes.Refresh, window.name, window.name)
-        channel.postMessage(message);
+        await Delay(500);
+        _g.Channel.postMessage(_g.SyncMessage);
     }
 }
 
-channel.onmessage = function (message) {
+_g.Channel.onmessage = function (message) {
+    if (window.name == "")
+        return;
     if (message.data.type == MessageTypes.Refresh) {
-        if (!otherWindows.includes(message.data.sender)) {
-            otherWindows.push(message.data.sender);
-            otherWindows.sort();
+        if (!_g.AllTabs.includes(message.data.sender) && window.name != "") {
+            HandleNewWindow(message.data.sender);
         }
-    } else if (message.data.type === MessageTypes.CloseWindow) {
-        otherWindows.pop(message.data.sender)
-    } else if (message.data.type === MessageTypes.Login) {
-        handleLogin(message.data.message);
+    } else if (message.data.type == MessageTypes.CloseWindow) {
+        const index = _g.AllTabs.pop(message.data.sender);
+        _g.AllTabs.splice(index, 1);
+    }
+}
+
+function HandleNewWindow(otherSessionId) {
+    const isSameGuidClient = GetSegmentOfSessionId(otherSessionId, SessionIdSegments.GuidClient) ==
+                             GetSegmentOfSessionId(window.name, SessionIdSegments.GuidClient);
+    const hasOtherLoggedIn = GetSegmentOfSessionId(otherSessionId, SessionIdSegments.GuidServer) != null;
+    const hasThisLoggedIn = GetSegmentOfSessionId(window.name, SessionIdSegments.GuidServer) != null;
+    const isLoginNeeded = hasOtherLoggedIn && !hasThisLoggedIn;
+    const isOtherOlder = GetSegmentOfSessionId(otherSessionId, SessionIdSegments.InitDate) <
+                         GetSegmentOfSessionId(window.name, SessionIdSegments.InitDate);
+
+
+    if ((isLoginNeeded && !isSameGuidClient && !isOtherOlder) || (!isLoginNeeded && (isSameGuidClient || !isOtherOlder))) {
+        InsertTab(otherSessionId, true);
+        return;
+    }
+
+    const newSessionId = ReplaceSegmentInSessionId(
+        otherSessionId,
+        SessionIdSegments.InitDate,
+        GetSegmentOfSessionId(window.name, SessionIdSegments.InitDate))
+
+    const data = {
+        senderSessionId: otherSessionId,
+        oldSessionId: window.name,
+        newSessionId: newSessionId,
+        isLoginNeeded: isLoginNeeded
     }
 
 
-}
+    $.ajax({
+        url: "template/changeSessionId",
+        type: "POST",
+        data: JSON.stringify(data),
+        contentType: "application/json; charset=utf8",
+        success: function (data2) {
 
-function getIp() {
-    var ip;
-    $.getJSON("https://api.ipify.org?format=json",
-        function (data) {
-            console.log(ip);
-        })
-    return ip;
-}
+            InsertTab(otherSessionId);
 
-function generateGUID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
+            SetNewSessionId(newSessionId);
+
+        }
     });
+
 }
 
-function delay(t) {
-    return new Promise(resolve => setTimeout(resolve, t));
-}
+function InsertTab(sessionId) {
+    if (_g.AllTabs.includes(sessionId))
+        return;
+
+    const date = GetSegmentOfSessionId(sessionId, SessionIdSegments.InitDate);
+    let justModify = false;
+    let insertIndex = 0;
+    for (let i = 0; i < _g.AllTabs.length; i++) {
+        let date_i = GetSegmentOfSessionId(_g.AllTabs[i], SessionIdSegments.InitDate);
+
+        if (date_i == date) {
+            justModify = true;
+            break;
+        } else if (date_i < date) 
+            insertIndex++;
+        else
+            break;
+    }
+    if (justModify)
+        _g.AllTabs[insertIndex] = sessionId;
+    else
+        _g.AllTabs.splice(insertIndex, 0, sessionId);
 
 
-function Message(type, sender, message, control) {
-    this.type = type;
-    this.sender = sender;
-    this.message = message;
-    this.control = control;
+    if (_g.Debug) console.log(_g.AllTabs);
 }
 
-var MessageTypes = {
-    Refresh: "refresh",
-    CloseWindow: "closeWindow",
-    Login: "login"
+function IsLoginNeeded(otherSessionId) {
+    return GetSegmentOfSessionId(otherSessionId, SessionIdSegments.GuidServer) != null &&
+        GetSegmentOfSessionId(window.name, SessionIdSegments.GuidServer == null)
 }
+
+async function HandleLogin(newSessionId, modules) {
+    SetNewSessionId(newSessionId);
+
+    for (let i = 0; i < modules.length; i++) {
+        var filename = './' + modules[i] + '.js';
+        try {
+            if (_g.Debug) console.log("import " + filename);
+            _g.ImportedModules[modules[i]] = await import(filename);
+            //return window.name;
+        } catch (error) {
+            if (_g.Debug) console.log(error);
+        }
+    };
+}
+
+function SetNewSessionId(newSessionId) {
+    // ez még nem biztos, hogy jó így
+    InsertTab(newSessionId);
+    _g.SyncMessage.sender = newSessionId;
+    _g.SyncMessage.message = newSessionId;
+    window.name = newSessionId;
+    
+    console.log("myNewSessionId: " + newSessionId)
+}
+
 
 
 
 window.onbeforeunload = function () {
-    var message = new Message(MessageTypes.CloseWindow, window.name, window.name)
-    channel.postMessage(message);
+    let message = new Message(MessageTypes.CloseWindow, window.name, window.name)
+    _g.Channel.postMessage(message);
 }
