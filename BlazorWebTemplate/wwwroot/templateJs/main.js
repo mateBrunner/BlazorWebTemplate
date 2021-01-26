@@ -1,4 +1,5 @@
-﻿const _g = {};
+﻿"use strict" 
+const _g = {};
 _g.AppName = "BlazorWebTemplate"
 _g.Debug = true;
 _g.ImportedModules = {};
@@ -7,22 +8,55 @@ _g.Channel = new BroadcastChannel('geo-channel');
 _g.SyncMessage;
 
 
-async function AppInit() {
-    if (window.name == "") {
-        window.name = GenerateSessionId(_g.AppName);
-        _g.AllTabs.push(window.name);
-        if (_g.Debug) console.log("init window name: " + window.name)
+async function AppInit(serverGuid, loginTime) {
+
+    if (window.name != "") {
+        StartBroadcasting();
+        return;
     }
 
+   
+    //ha custom authentikáció van
+    if (serverGuid == null) {
+        var sessionId = GenerateSessionId(_g.AppName);
+        InitWindowName(sessionId);
+        
+    } else {
+        //ha windows-os authentikáció van
 
+        var sessionId = GenerateSessionId(_g.AppName, serverGuid, loginTime);
+
+        //TODO - itt elég lenne egy stringet küldeni
+        const data = { oldSessionId: sessionId }
+
+        $.ajax({
+            url: "template/windowsUser",
+            type: "POST",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf8",
+            success: function (newSessionId) {
+
+                InitWindowName(newSessionId);
+
+            }
+        });
+
+    }
+
+}
+
+function InitWindowName(sessionId) {
+    window.name = sessionId;
+    _g.AllTabs.push(sessionId);
+    if (_g.Debug) console.log("init window name: " + window.name)
     StartBroadcasting();
 }
 
 async function GetClientData() {
-    "use strict" 
 
     if (window.name == "")
-        AppInit();
+        return null;
+        //AppInit();
     
 
     const clientData = {
@@ -57,7 +91,7 @@ _g.Channel.onmessage = function (message) {
     if (window.name == "")
         return;
     if (message.data.type == MessageTypes.Refresh) {
-        if (!_g.AllTabs.includes(message.data.sender) && window.name != "") {
+        if (!_g.AllTabs.includes(message.data.sender)) {
             HandleNewWindow(message.data.sender);
         }
     } else if (message.data.type == MessageTypes.CloseWindow) {
@@ -76,10 +110,17 @@ function HandleNewWindow(otherSessionId) {
                          GetSegmentOfSessionId(window.name, SessionIdSegments.InitDate);
 
 
+
     if ((isLoginNeeded && !isSameGuidClient && !isOtherOlder) || (!isLoginNeeded && (isSameGuidClient || !isOtherOlder))) {
         InsertTab(otherSessionId, true);
         return;
     }
+
+    console.log("isSameGuidClient " + isSameGuidClient);
+    console.log("hasOtherLoggedIn " + hasOtherLoggedIn);
+    console.log("hasThisLoggedIn " + hasThisLoggedIn);
+    console.log("isLoginNeeded " + isLoginNeeded);
+    console.log("isOtherOlder " + isOtherOlder);
 
     const newSessionId = ReplaceSegmentInSessionId(
         otherSessionId,
@@ -93,6 +134,7 @@ function HandleNewWindow(otherSessionId) {
         isLoginNeeded: isLoginNeeded
     }
 
+    console.log(data);
 
     $.ajax({
         url: "template/changeSessionId",

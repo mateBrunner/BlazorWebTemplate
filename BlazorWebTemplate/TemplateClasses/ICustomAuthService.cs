@@ -10,5 +10,7 @@ namespace BlazorWebTemplate.TemplateClasses
 
         SessionData TryLogin( string username, string password );
 
+        SessionData TryWindowsLogin( string username );
+
     }
 }

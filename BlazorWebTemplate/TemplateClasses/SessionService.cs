@@ -62,6 +62,14 @@ namespace BlazorWebTemplate.TemplateClasses
             return newSessionId;
         }
 
+        public string LogInWindowsUser( ClientData clientData, SessionData newUserData )
+        {
+            //már készen kapjuk a sessionId-t
+            m_SessionDataDict.Add( clientData.SessionId, newUserData );
+            return clientData.SessionId;
+        }
+
+
         public bool IsLoggedIn(string sessionId)
         {
             return TemplateHelper.GetSegmentOfSessionId( sessionId, SessionSegments.GUIDSERVER ) != null;
@@ -76,9 +84,9 @@ namespace BlazorWebTemplate.TemplateClasses
             else
                 sessionData = m_SessionDataDict[ data.OldSessionId ];
 
+
             m_SessionDataDict.Remove( data.OldSessionId );
             m_SessionDataDict[ data.NewSessionId ] = sessionData;
-           
 
         }
 

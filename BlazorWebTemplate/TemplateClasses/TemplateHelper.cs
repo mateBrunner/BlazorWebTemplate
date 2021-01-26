@@ -19,7 +19,15 @@ namespace BlazorWebTemplate.TemplateClasses
 
         }
 
+        public static string ReplaceSegmentOfSessionId( string sessionId, int segmentIndex, string newValue )
+        {
+            var splitted = sessionId.Split( "__" );
+            splitted[ segmentIndex ] = newValue;
+            return String.Join( "__", splitted );
+        }
+
     }
+
 
     public class SessionSegments
     {

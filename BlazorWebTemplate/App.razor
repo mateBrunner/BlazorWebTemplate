@@ -32,7 +32,16 @@
 
     protected override async void OnInitialized( )
     {
-        var res = await jsRuntime.InvokeAsync<string>( "AppInit" );
+        string serverGuid = null;
+        string loginTime = null;
+
+        if( config[ $"CustomOptions:AuthenticationType" ] == "windows" )
+        {
+            serverGuid = Guid.NewGuid( ).ToString( );
+            loginTime = DateTime.Now.ToString( "yyyyMMddTHHmmssfff" );
+        }
+
+        var res = await jsRuntime.InvokeAsync<string>( "AppInit", serverGuid, loginTime );
         //JsInitData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<JsInitData>( res );
         //sessionService.NewClient( clientData );
 

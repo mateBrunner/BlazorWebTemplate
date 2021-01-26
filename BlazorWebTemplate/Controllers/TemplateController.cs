@@ -1,5 +1,6 @@
 ﻿using BlazorWebTemplate.TemplateClasses;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Principal;
 
 namespace BlazorWebTemplate.Controllers
 {
@@ -11,10 +12,12 @@ namespace BlazorWebTemplate.Controllers
     {
 
         private SessionService m_SessionService;
+        private ICustomAuthService m_AuthService;
 
-        public TemplateController(SessionService sessionService)
+        public TemplateController( SessionService sessionService, ICustomAuthService authService )
         {
             m_SessionService = sessionService;
+            m_AuthService = authService;
         }
 
 
@@ -24,7 +27,28 @@ namespace BlazorWebTemplate.Controllers
         {
             m_SessionService.ChangeSessionId( data );
 
-            return Ok();
+            return Ok( );
         }
+
+        [HttpPost]
+        [Route( "windowsUser" )]
+        public IActionResult GetWindowsUser( [FromBody] ChangeSessionIdData data )
+        {
+
+            var sessionId = data.OldSessionId;
+
+            var windowsUser = HttpContext.User.Identity.Name;
+            windowsUser = windowsUser.Replace( '\\', '_');
+
+            sessionId = TemplateHelper.ReplaceSegmentOfSessionId( sessionId, SessionSegments.USERNAME, windowsUser );
+
+            var clientData = new ClientData( ) { SessionId = sessionId };
+
+            var userData = m_AuthService.TryWindowsLogin( sessionId );
+            m_SessionService.LogInWindowsUser( clientData, userData );
+
+            return Ok( sessionId );
+        }
+
     }
 }

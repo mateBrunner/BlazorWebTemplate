@@ -1,6 +1,10 @@
 ﻿
-function GenerateSessionId(appName) {
-    return appName + "__" + GetTimeString() + "__anonym__" + GenerateGUID();
+function GenerateSessionId(appName, serverGuid, loginTime) {
+    if (serverGuid == null)
+        return appName + "__" + GetTimeString() + "__anonym__" + GenerateGUID();
+    else
+        return appName + "__" + GetTimeString() + "__" + GetWindowsUser() + "__" + GenerateGUID() + "__" +
+            loginTime + "__" + serverGuid;
 }
 
 function GetIp() {
@@ -11,6 +15,10 @@ function GetIp() {
             if (_g.Debug) console.log(data);
         })
     return ip;
+}
+
+function GetWindowsUser() {
+
 }
 
 function GetTimeString() {

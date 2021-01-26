@@ -48,6 +48,10 @@
     protected override async void OnInitialized( )
     {
         var data = await m_jsRuntime.InvokeAsync<string>( "GetClientData" );
+
+        if ( data == null )
+            return;
+
         ClientData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientData>( data );
 
         if ( sessionService.IsLoggedIn( clientData.SessionId ) )
