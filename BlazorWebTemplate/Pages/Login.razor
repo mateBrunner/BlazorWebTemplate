@@ -1,9 +1,10 @@
 ﻿@page "/"
+@using NLog
 @inject NavigationManager navigationManager
 @inject SessionService sessionService
 @inject IJSRuntime m_jsRuntime
 @inject ICustomAuthService authService
-@using System.Threading
+@inject ILogger m_Logger 
 
 <div class="login-div">
     <h3>Bejelentkezés</h3>
@@ -35,6 +36,8 @@
             ClientData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<ClientData>( data );
 
             var newSessionId = sessionService.LogInUser( clientData, userData );
+
+            m_Logger.Debug( $"Login click {newSessionId}" );
 
             await m_jsRuntime.InvokeAsync<string>( "HandleLogin", newSessionId, sessionService.GetSessionAdatok(newSessionId).JsModules );
             //await m_jsRuntime.InvokeAsync<string>( "callModuleFunction", JsModules.AUTHENTICATED, AuthenticatedModuleFunctions.TEST_METHOD );

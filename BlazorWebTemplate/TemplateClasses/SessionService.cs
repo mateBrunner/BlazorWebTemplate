@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -10,7 +11,12 @@ namespace BlazorWebTemplate.TemplateClasses
     {
 
         private Dictionary<string, SessionData> m_SessionDataDict = new Dictionary<string, SessionData>( );
+        ILogger m_Logger;
 
+        public SessionService(ILogger logger)
+        {
+            m_Logger = logger;
+        }
 
         public SessionData GetSessionAdatok( ClientData client )
         {
@@ -59,6 +65,8 @@ namespace BlazorWebTemplate.TemplateClasses
 
             m_SessionDataDict.Add( newSessionId, newUserData );
 
+            m_Logger.Debug( $"LogInUser username:{newUserData.Username} sessionId: {newSessionId}" );
+
             return newSessionId;
         }
 
@@ -66,6 +74,9 @@ namespace BlazorWebTemplate.TemplateClasses
         {
             //már készen kapjuk a sessionId-t
             m_SessionDataDict.Add( clientData.SessionId, newUserData );
+
+            m_Logger.Debug( $"LogInWindowsUser username:{newUserData.Username} sessionId: {clientData.SessionId}" );
+
             return clientData.SessionId;
         }
 
@@ -75,7 +86,7 @@ namespace BlazorWebTemplate.TemplateClasses
             return TemplateHelper.GetSegmentOfSessionId( sessionId, SessionSegments.GUIDSERVER ) != null;
         }
 
-        public void ChangeSessionId( ChangeSessionIdData data )
+        public List<string> ChangeSessionId( ChangeSessionIdData data )
         {
             SessionData sessionData;
 
@@ -84,9 +95,15 @@ namespace BlazorWebTemplate.TemplateClasses
             else
                 sessionData = m_SessionDataDict[ data.OldSessionId ];
 
-
             m_SessionDataDict.Remove( data.OldSessionId );
             m_SessionDataDict[ data.NewSessionId ] = sessionData;
+
+            m_Logger.Debug( $"ChangeSessionId login: {data.IsLoginNeeded} oldSessionId: {data.OldSessionId} newSessionId: {data.NewSessionId}" );
+
+            if ( data.IsLoginNeeded )
+                return sessionData.JsModules;
+            else
+                return null;
 
         }
 

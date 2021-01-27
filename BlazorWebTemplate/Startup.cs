@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,6 +38,10 @@ namespace BlazorWebTemplate
             services.AddSingleton<SessionService>( );
             services.AddSingleton<ICustomAuthService, CustomAuthService>( );
 
+            services.AddSingleton<NLog.ILogger>( serviceProvider =>
+            {
+                return LogManager.GetCurrentClassLogger( );
+            } );
 
             services.AddHttpContextAccessor( );
             services.AddAuthorization( );

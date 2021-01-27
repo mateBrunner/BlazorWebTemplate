@@ -110,17 +110,13 @@ function HandleNewWindow(otherSessionId) {
                          GetSegmentOfSessionId(window.name, SessionIdSegments.InitDate);
 
 
+    if (IsLoginNeeded && !isSameGuidClient && !isOtherOlder)
+        return;
 
     if ((isLoginNeeded && !isSameGuidClient && !isOtherOlder) || (!isLoginNeeded && (isSameGuidClient || !isOtherOlder))) {
-        InsertTab(otherSessionId, true);
+        RefreshAllTabs(otherSessionId);
         return;
     }
-
-    console.log("isSameGuidClient " + isSameGuidClient);
-    console.log("hasOtherLoggedIn " + hasOtherLoggedIn);
-    console.log("hasThisLoggedIn " + hasThisLoggedIn);
-    console.log("isLoginNeeded " + isLoginNeeded);
-    console.log("isOtherOlder " + isOtherOlder);
 
     const newSessionId = ReplaceSegmentInSessionId(
         otherSessionId,
@@ -141,9 +137,11 @@ function HandleNewWindow(otherSessionId) {
         type: "POST",
         data: JSON.stringify(data),
         contentType: "application/json; charset=utf8",
-        success: function (data2) {
+        success: function (modulesJson) {
 
-            InsertTab(otherSessionId);
+            RefreshAllTabs(otherSessionId);
+
+            ImportModules(JSON.parse(modulesJson));
 
             SetNewSessionId(newSessionId);
 
@@ -152,7 +150,7 @@ function HandleNewWindow(otherSessionId) {
 
 }
 
-function InsertTab(sessionId) {
+function RefreshAllTabs(sessionId) {
     if (_g.AllTabs.includes(sessionId))
         return;
 
@@ -187,6 +185,20 @@ function IsLoginNeeded(otherSessionId) {
 async function HandleLogin(newSessionId, modules) {
     SetNewSessionId(newSessionId);
 
+    ImportModules(modules);
+}
+
+function SetNewSessionId(newSessionId) {
+    // ez még nem biztos, hogy jó így
+    RefreshAllTabs(newSessionId);
+    _g.SyncMessage.sender = newSessionId;
+    _g.SyncMessage.message = newSessionId;
+    window.name = newSessionId;
+    
+    console.log("myNewSessionId: " + newSessionId)
+}
+
+async function ImportModules(modules) {
     for (let i = 0; i < modules.length; i++) {
         var filename = './' + modules[i] + '.js';
         try {
@@ -198,18 +210,6 @@ async function HandleLogin(newSessionId, modules) {
         }
     };
 }
-
-function SetNewSessionId(newSessionId) {
-    // ez még nem biztos, hogy jó így
-    InsertTab(newSessionId);
-    _g.SyncMessage.sender = newSessionId;
-    _g.SyncMessage.message = newSessionId;
-    window.name = newSessionId;
-    
-    console.log("myNewSessionId: " + newSessionId)
-}
-
-
 
 
 window.onbeforeunload = function () {
