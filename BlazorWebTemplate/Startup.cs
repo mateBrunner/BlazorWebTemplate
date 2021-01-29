@@ -1,5 +1,6 @@
 using BlazorWebTemplate.Data;
 using BlazorWebTemplate.TemplateClasses;
+using Grpc.Net.Client;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -12,6 +13,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace BlazorWebTemplate
@@ -37,6 +39,20 @@ namespace BlazorWebTemplate
 
             services.AddSingleton<SessionService>( );
             services.AddSingleton<ICustomAuthService, CustomAuthService>( );
+
+
+            services.AddSingleton<Greeter.GreeterClient>( ServiceProvider =>
+            {
+                var httpHandler = new HttpClientHandler( );
+                // Return `true` to allow certificates that are untrusted/invalid
+                httpHandler.ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
+
+                var channel = GrpcChannel.ForAddress( "https://localhost:5001",
+                    new GrpcChannelOptions { HttpHandler = httpHandler } );
+
+                return new Greeter.GreeterClient( channel );
+            } );
 
             services.AddSingleton<NLog.ILogger>( serviceProvider =>
             {

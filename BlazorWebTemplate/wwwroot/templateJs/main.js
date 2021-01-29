@@ -26,13 +26,10 @@ async function AppInit(serverGuid, loginTime) {
 
         var sessionId = GenerateSessionId(_g.AppName, serverGuid, loginTime);
 
-        //TODO - itt elég lenne egy stringet küldeni
-        const data = { oldSessionId: sessionId }
-
         $.ajax({
-            url: "template/windowsUser",
+            url: "template/handleWindowsUser",
             type: "POST",
-            data: JSON.stringify(data),
+            data: JSON.stringify(sessionId),
             contentType: "application/json; charset=utf8",
             success: function (newSessionId) {
 
@@ -56,8 +53,6 @@ async function GetClientData() {
 
     if (window.name == "")
         return null;
-        //AppInit();
-    
 
     const clientData = {
         sessionId: window.name,

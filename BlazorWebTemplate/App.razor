@@ -1,8 +1,10 @@
 ﻿@inject IJSRuntime jsRuntime
 @implements IDisposable
 @using Microsoft.Extensions.Configuration
+@using Grpc.Net.Client;
 @inject IConfiguration config
 @inject SessionService sessionService
+@inject Greeter.GreeterClient greeter
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Program).Assembly">
@@ -27,7 +29,7 @@
     </Router>
 </CascadingAuthenticationState>
 
-@code {        
+@code {
 
 
     protected override async void OnInitialized( )
@@ -35,15 +37,18 @@
         string serverGuid = null;
         string loginTime = null;
 
-        if( config[ $"CustomOptions:AuthenticationType" ] == "windows" )
+        if ( config[ $"CustomOptions:AuthenticationType" ] == "windows" )
         {
             serverGuid = Guid.NewGuid( ).ToString( );
             loginTime = DateTime.Now.ToString( "yyyyMMddTHHmmssfff" );
         }
 
         var res = await jsRuntime.InvokeAsync<string>( "AppInit", serverGuid, loginTime );
-        //JsInitData clientData = Newtonsoft.Json.JsonConvert.DeserializeObject<JsInitData>( res );
-        //sessionService.NewClient( clientData );
+
+
+        //var reply = await greeter.SayHelloAsync( new HelloRequest { Name = "GreeterClient" } );
+        //var reply2 = await greeter.TestFunctionAsync( new TestRequest { 
+        //    Parameter1 = "param1", Parameter2 = "param2" } );
 
         base.OnInitialized( );
     }

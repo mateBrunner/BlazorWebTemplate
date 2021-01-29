@@ -34,14 +34,12 @@ namespace BlazorWebTemplate.Controllers
         }
 
         [HttpPost]
-        [Route( "windowsUser" )]
-        public IActionResult GetWindowsUser( [FromBody] ChangeSessionIdData data )
+        [Route( "handleWindowsUser" )]
+        public IActionResult HandleWindowsUser( [FromBody] string sessionId )
         {
 
-            var sessionId = data.OldSessionId;
-
             var windowsUser = HttpContext.User.Identity.Name;
-            windowsUser = windowsUser.Replace( '\\', '_');
+            windowsUser = windowsUser.Replace( '\\', '_' );
 
             sessionId = TemplateHelper.ReplaceSegmentOfSessionId( sessionId, SessionSegments.USERNAME, windowsUser );
 
